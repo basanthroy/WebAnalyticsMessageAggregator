@@ -6,6 +6,8 @@ import java.util.concurrent.Future
 
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.radiumone.webanalytics.messageagg.WebAnalyticsJsonRecord
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord, RecordMetadata}
 import org.apache.kafka.common.serialization.StringSerializer
 import org.apache.log4j.Level
@@ -36,13 +38,6 @@ object KafkaGroupMessagesForKeen {
   def main(args: Array[String]) {
 
     System.err.println("REACHED BEGINNING..........")
-    System.err.println("REACHED BEGINNING..........")
-    System.err.println("REACHED BEGINNING..........")
-    System.err.println("REACHED BEGINNING..........")
-    System.err.println("REACHED BEGINNING..........")
-    System.err.println("REACHED BEGINNING..........")
-    System.err.println("REACHED BEGINNING..........")
-
 
     if (args.length < 3) {
       System.err.println("Usage: KafkaWordCount <group> <topics> <destinationTopic>")
@@ -57,9 +52,7 @@ object KafkaGroupMessagesForKeen {
     val Array(group, topics, kafkaOpTopic) = args
 
     System.err.println("Usage: KafkaWordCount <zkQuorum> <group> <topics> <numThreads> BASANTH -----")
-    System.err.println("Usage: KafkaWordCount <zkQuorum> <group> <topics> <numThreads> BASANTH -----")
-    System.err.println("Usage: KafkaWordCount <zkQuorum> <group> <topics> <numThreads> BASANTH -----")
-    System.err.println("Usage: KafkaWordCount <zkQuorum> <group> <topics> <numThreads> BASANTH -----")
+
     val sparkConf = new SparkConf()
       .setMaster("local[*]")
       .setAppName("KafkaWordCount")
@@ -75,14 +68,6 @@ object KafkaGroupMessagesForKeen {
 
     org.apache.log4j.Logger.getRootLogger.setLevel(Level.WARN)
     System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
-    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
-    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
-    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
-    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
-    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
-    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
-
-
 
     //    val topicMap = topics.split(",").map((_, numThreads.toInt)).toMap
 
@@ -114,20 +99,11 @@ object KafkaGroupMessagesForKeen {
 
 
     System.err.println("stream = " + stream)
-    System.err.println("stream = " + stream)
-    System.err.println("stream = " + stream)
-    System.err.println("stream = " + stream)
-    System.err.println("stream = " + stream)
-    System.err.println("stream = " + stream)
 
     stream.foreachRDD(x =>
       {
 
         System.err.println("x = " + x)
-//        System.err.println("x = " + x)
-//        System.err.println("x = " + x)
-//        System.err.println("x = " + x)
-//        System.err.println("x = " + x)
 
         // TODO : do we need to iterate over the partitions or can
         // TODO : we somehow iterate over the records in the
@@ -137,28 +113,19 @@ object KafkaGroupMessagesForKeen {
 //            .foreachPartition(part => {
 
         x.foreachPartition(part => {
-          val loopIndex = 0
+//          val loopIndex = 0
 
 
           System.err.println("part = " + part)
-//          System.err.println("part = " + part)
-//          System.err.println("part = " + part)
-//          System.err.println("part = " + part)
-//          System.err.println("part = " + part)
 
 //          while (!part.isEmpty) {
            while (!part.isEmpty) {
 
-
-
-//            part.
+             val objectMapper: ObjectMapper = new ObjectMapper()
+             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+             objectMapper.registerModule(DefaultScalaModule)
 
             System.err.println("part is not empty = " + part)
-//            System.err.println("part is not empty = " + part)
-//            System.err.println("part is not empty = " + part)
-//            System.err.println("part is not empty = " + part)
-//            System.err.println("part is not empty = " + part)
-
 
 //            part.take(2000)
 //            part.drop(2000)
@@ -166,8 +133,25 @@ object KafkaGroupMessagesForKeen {
             // TODO : in the next iteration of the loop, the next set of elements are
             // TODO : chosen and not the same ones again
             val groupedRecords = part
-                                  .slice(loopIndex,loopIndex + REST_PAYLOAD_RECORD_LIMIT)
-                                  .map(cr => cr.value())
+                                 // .slice(loopIndex,loopIndex + REST_PAYLOAD_RECORD_LIMIT)
+                                 // I removed loopIndex since I didn't want to have any global vars
+                                  .slice(0,REST_PAYLOAD_RECORD_LIMIT)
+//                                  .map(cr => cr.value())
+                                   .map(cr => {val value:String = cr.value()
+//                                               value
+
+  val jsonObject:WebAnalyticsJsonRecord = objectMapper.readValue(value, classOf[WebAnalyticsJsonRecord])
+//    .readValue(value, classOf[WebAnalyticsJsonRecord])
+
+  //      jsonObject.doMethod()
+
+  //      System.out.println("\n\njsonObject = " + jsonObject)
+
+  val trackingId = jsonObject.tracking_id
+  trackingId
+
+                                     })
+//                                  .map(cr => cr._1.toString)
 
             // TODO : 1. Need to tune batch sizes so that we don't end up with lot of tiny REST
             // TODO :    payloads due to the lack of availability of data in any one specific
@@ -178,15 +162,9 @@ object KafkaGroupMessagesForKeen {
 
 //            objectMapper.readValue(cr.value(), classOf[restJsonRecord])
 
-            val singleValue:String  = groupedRecords.reduceLeft(_ + _)
+            val singleValue:String  = groupedRecords.reduceLeft(_ + ", " +  _)
 
             System.err.println("groupedRecords.toString() = " + singleValue)
-//            System.err.println("groupedRecords.toString() = " + singleValue)
-//            System.err.println("groupedRecords.toString() = " + singleValue)
-//            System.err.println("groupedRecords.toString() = " + singleValue)
-//            System.err.println("groupedRecords.toString() = " + singleValue)
-
-
 
             val producer = createProducer(kafkaBrokers)
 
@@ -194,10 +172,6 @@ object KafkaGroupMessagesForKeen {
              val fut:Future[RecordMetadata] = producer.send(message)
 
             System.err.println("fut = " + fut + ", message=" + message)
-//            System.err.println("fut = " + fut + ", message=" + message)
-//            System.err.println("fut = " + fut + ", message=" + message)
-//            System.err.println("fut = " + fut + ", message=" + message)
-//            System.err.println("fut = " + fut + ", message=" + message)
 
           }
         }
