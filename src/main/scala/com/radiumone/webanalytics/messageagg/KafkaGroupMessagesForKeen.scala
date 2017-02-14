@@ -2,11 +2,13 @@
 package com.radiumone.webanalytics.messageagg
 
 import java.util
+import java.util.concurrent.Future
 
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord, RecordMetadata}
 import org.apache.kafka.common.serialization.StringSerializer
+import org.apache.log4j.Level
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming._
 //import org.apache.spark.streaming.kafka._
@@ -42,18 +44,17 @@ object KafkaGroupMessagesForKeen {
     System.err.println("REACHED BEGINNING..........")
 
 
-    if (args.length < 4) {
-      System.err.println("Usage: KafkaWordCount <zkQuorum> <group> <topics> <numThreads>")
+    if (args.length < 3) {
+      System.err.println("Usage: KafkaWordCount <group> <topics> <destinationTopic>")
       System.exit(1)
     }
 
     val REST_PAYLOAD_RECORD_LIMIT:Int = 2000
-    val kafkaOpTopic:String = "SINGLEPARTITION_REST_TOPIC"
+//    val kafkaOpTopic:String = "SINGLEPARTITION_REST_TOPIC"
     val kafkaBrokers = "localhost:9092"
 
-    StreamingExamples.setStreamingLogLevels()
 
-    val Array(zkQuorum, group, topics, numThreads) = args
+    val Array(group, topics, kafkaOpTopic) = args
 
     System.err.println("Usage: KafkaWordCount <zkQuorum> <group> <topics> <numThreads> BASANTH -----")
     System.err.println("Usage: KafkaWordCount <zkQuorum> <group> <topics> <numThreads> BASANTH -----")
@@ -66,10 +67,24 @@ object KafkaGroupMessagesForKeen {
       .set("spark.executor.memory","1024mb")
     System.err.println(sparkConf.get("spark.driver.memory"))
     System.err.println(sparkConf.get("spark.executor.memory"))
-    val ssc = new StreamingContext(sparkConf, Seconds(2))
+    val ssc = new StreamingContext(sparkConf, Seconds(8))
     ssc.checkpoint("checkpoint")
 
-//    val topicMap = topics.split(",").map((_, numThreads.toInt)).toMap
+    StreamingExamples.setStreamingLogLevels()
+
+
+    org.apache.log4j.Logger.getRootLogger.setLevel(Level.WARN)
+    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
+    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
+    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
+    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
+    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
+    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
+    System.out.println("org.apache.log4j.Logger.getRootLogger.getLevel=" + org.apache.log4j.Logger.getRootLogger.getLevel)
+
+
+
+    //    val topicMap = topics.split(",").map((_, numThreads.toInt)).toMap
 
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> "localhost:9092",
@@ -95,19 +110,55 @@ object KafkaGroupMessagesForKeen {
     case class restJsonRecord(f1:String)
 
 //    var groupedRecords:Map[String, String] = Map()
-    var count:Int = 0
+//    var count:Int = 0
 
 
+    System.err.println("stream = " + stream)
+    System.err.println("stream = " + stream)
+    System.err.println("stream = " + stream)
+    System.err.println("stream = " + stream)
+    System.err.println("stream = " + stream)
+    System.err.println("stream = " + stream)
 
     stream.foreachRDD(x =>
       {
 
+        System.err.println("x = " + x)
+//        System.err.println("x = " + x)
+//        System.err.println("x = " + x)
+//        System.err.println("x = " + x)
+//        System.err.println("x = " + x)
+
         // TODO : do we need to iterate over the partitions or can
         // TODO : we somehow iterate over the records in the
         // TODO : RDD directly ? I didn't see a slice() method for the 'x' RDD object
+//        x.mapPartitionsWithIndex(
+//            (index, part) => part.map(cr => (index, cr)), true)
+//            .foreachPartition(part => {
+
         x.foreachPartition(part => {
           val loopIndex = 0
-          while (!part.isEmpty) {
+
+
+          System.err.println("part = " + part)
+//          System.err.println("part = " + part)
+//          System.err.println("part = " + part)
+//          System.err.println("part = " + part)
+//          System.err.println("part = " + part)
+
+//          while (!part.isEmpty) {
+           while (!part.isEmpty) {
+
+
+
+//            part.
+
+            System.err.println("part is not empty = " + part)
+//            System.err.println("part is not empty = " + part)
+//            System.err.println("part is not empty = " + part)
+//            System.err.println("part is not empty = " + part)
+//            System.err.println("part is not empty = " + part)
+
 
 //            part.take(2000)
 //            part.drop(2000)
@@ -127,10 +178,26 @@ object KafkaGroupMessagesForKeen {
 
 //            objectMapper.readValue(cr.value(), classOf[restJsonRecord])
 
+            val singleValue:String  = groupedRecords.reduceLeft(_ + _)
+
+            System.err.println("groupedRecords.toString() = " + singleValue)
+//            System.err.println("groupedRecords.toString() = " + singleValue)
+//            System.err.println("groupedRecords.toString() = " + singleValue)
+//            System.err.println("groupedRecords.toString() = " + singleValue)
+//            System.err.println("groupedRecords.toString() = " + singleValue)
+
+
+
             val producer = createProducer(kafkaBrokers)
 
-             val message = new ProducerRecord[String, String](kafkaOpTopic, null, groupedRecords.toString())
-             producer.send(message)
+             val message = new ProducerRecord[String, String](kafkaOpTopic, null, singleValue)
+             val fut:Future[RecordMetadata] = producer.send(message)
+
+            System.err.println("fut = " + fut + ", message=" + message)
+//            System.err.println("fut = " + fut + ", message=" + message)
+//            System.err.println("fut = " + fut + ", message=" + message)
+//            System.err.println("fut = " + fut + ", message=" + message)
+//            System.err.println("fut = " + fut + ", message=" + message)
 
           }
         }
