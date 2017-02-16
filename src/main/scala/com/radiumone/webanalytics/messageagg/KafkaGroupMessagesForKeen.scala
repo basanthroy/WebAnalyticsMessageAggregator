@@ -116,7 +116,7 @@ object KafkaGroupMessagesForKeen {
 //          val loopIndex = 0
 
 
-          System.err.println("part = " + part)
+          System.err.println("Partition = " + part)
 
 //          while (!part.isEmpty) {
            while (!part.isEmpty) {
@@ -125,7 +125,7 @@ object KafkaGroupMessagesForKeen {
              objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
              objectMapper.registerModule(DefaultScalaModule)
 
-            System.err.println("part is not empty = " + part)
+            System.err.println("Partition is not empty = " + part)
 
 //            part.take(2000)
 //            part.drop(2000)
@@ -171,7 +171,7 @@ object KafkaGroupMessagesForKeen {
              val message = new ProducerRecord[String, String](kafkaOpTopic, null, singleValue)
              val fut:Future[RecordMetadata] = producer.send(message)
 
-            System.err.println("fut = " + fut + ", message=" + message)
+            System.err.println("Future object = " + fut + ", message=" + message)
 
           }
         }
